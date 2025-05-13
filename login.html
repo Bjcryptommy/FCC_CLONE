@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding-right: 40px;
+      width: 100%;
+    }
+
+    .eye-icon {
+      position: absolute;
+      right: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FCC Clone - Login</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <span class="eye-icon" id="togglePassword">👁️</span>
+      </div>
+
+      <button type="submit">Login</button>
+      <p id="response" class="message"></p>
+      <p style="margin-top: 15px;">Don't have an account?
+        <a href="register.html">Register</a>
+      </p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const responseText = document.getElementById("response");
+
+      const response = await fetch("http://127.0.0.1:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (data.message === "Login successful!") {
+        const roleResponse = await fetch(`http://127.0.0.1:5000/auth/role/${username}`);
+        const roleData = await roleResponse.json();
+
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", roleData.role);
+
+        window.location.href = roleData.role === "admin" ? "admin-dashboard.html" : "student-dashboard.html";
+      } else {
+        responseText.innerText = data.error || "Login failed";
+      }
+    });
+
+    // 🔐 Toggle password visibility
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const passwordField = document.getElementById("password");
+      const type = passwordField.type === "password" ? "text" : "password";
+      passwordField.type = type;
+    });
+  </script>
+
+  <script>
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      window.location.href = "admin-dashboard.html";
+    } else if (role === "student") {
+      window.location.href = "student-dashboard.html";
+    }
+  </script>
+</body>
+</html>

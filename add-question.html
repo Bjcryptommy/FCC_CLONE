@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Quiz Question - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .answer-option {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Add Quiz Question</h2>
+    <form id="questionForm">
+      <select id="languageSelect" required>
+        <option value="">Select Language</option>
+      </select>
+
+      <select id="courseSelect" required>
+        <option value="">Select Course</option>
+      </select>
+
+      <select id="lessonSelect" required>
+        <option value="">Select Lesson</option>
+      </select>
+
+      <textarea id="questionText" placeholder="Enter question..." required></textarea>
+
+      <div id="answersContainer"></div>
+      <button type="button" onclick="addAnswer()">➕ Add Answer Option</button>
+
+      <button type="submit" style="margin-top: 15px;">Submit Question</button>
+      <p id="responseMessage"></p>
+    </form>
+  </div>
+
+  <script>
+    const languageSelect = document.getElementById('languageSelect');
+    const courseSelect = document.getElementById('courseSelect');
+    const lessonSelect = document.getElementById('lessonSelect');
+    const answersContainer = document.getElementById('answersContainer');
+    const responseMessage = document.getElementById('responseMessage');
+
+    async function fetchLanguages() {
+      const res = await fetch('http://127.0.0.1:5000/courses');
+      const data = await res.json();
+      const languages = [...new Set(data.map(c => c.language))];
+      languages.forEach(lang => {
+        const option = document.createElement('option');
+        option.value = lang;
+        option.textContent = lang;
+        languageSelect.appendChild(option);
+      });
+    }
+
+    async function fetchCourses(language) {
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+      const res = await fetch('http://127.0.0.1:5000/courses');
+      const data = await res.json();
+      const filtered = data.filter(c => c.language === language);
+      filtered.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = course.title;
+        courseSelect.appendChild(option);
+      });
+    }
+
+    async function fetchLessons(courseId) {
+      lessonSelect.innerHTML = '<option value="">Select Lesson</option>';
+      const res = await fetch(`http://127.0.0.1:5000/courses/${courseId}/lessons`);
+      const data = await res.json();
+      data.forEach(lesson => {
+        const option = document.createElement('option');
+        option.value = lesson.id;
+        option.textContent = lesson.title;
+        lessonSelect.appendChild(option);
+      });
+    }
+
+    function addAnswer() {
+      const container = document.createElement('div');
+      container.className = 'answer-option';
+      container.innerHTML = `
+        <input type="text" placeholder="Answer text" class="answerText" required />
+        <label>
+          <input type="radio" name="correctAnswer" class="correctAnswer" />
+          Correct
+        </label>
+      `;
+      answersContainer.appendChild(container);
+    }
+
+    document.getElementById('questionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const lesson_id = lessonSelect.value;
+      const question_text = document.getElementById('questionText').value;
+      const answers = [...document.querySelectorAll('.answerText')].map(input => input.value);
+      const correctIndex = [...document.querySelectorAll('.correctAnswer')].findIndex(input => input.checked);
+
+      if (correctIndex === -1) {
+        responseMessage.textContent = "❌ Please select a correct answer.";
+        return;
+      }
+
+      // Step 1: Create the question
+      const qRes = await fetch("http://127.0.0.1:5000/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lesson_id, question_text }),
+      });
+
+      const qData = await qRes.json();
+      const question_id = qData.question_id;
+
+      // Step 2: Post the answers
+      const answerPayload = {
+        question_id,
+        answers: answers.map((text, i) => ({
+          text,
+          is_correct: i === correctIndex
+        }))
+      };
+
+      const aRes = await fetch("http://127.0.0.1:5000/answers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(answerPayload),
+      });
+
+      const aData = await aRes.json();
+      responseMessage.textContent = "✅ Question and answers saved!";
+      document.getElementById('questionForm').reset();
+      answersContainer.innerHTML = "";
+    });
+
+    languageSelect.addEventListener('change', () => fetchCourses(languageSelect.value));
+    courseSelect.addEventListener('change', () => fetchLessons(courseSelect.value));
+
+    fetchLanguages();
+    addAnswer(); // Show one answer input by default
+  </script>
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("admin-sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+  
+        // Re-attach event listeners
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+  
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+  
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+  
+        const logoutBtn = document.querySelector("a[href='#'][onclick='logout()']");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = "login.html";
+          });
+        }
+      });
+  </script>
+</body>
+</html>

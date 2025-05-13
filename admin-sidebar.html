@@ -1,0 +1,107 @@
+<!-- admin-sidebar.html -->
+<div class="topbar">
+    <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+    <div class="logo">👑 Admin Panel</div>
+  </div>
+  
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span id="closeSidebar" onclick="toggleSidebar()">✖</span>
+    </div>
+    <ul id="navLinks">
+      <li><a href="admin-dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="add-course.html">➕ Add Course</a></li>
+      <li><a href="add-lesson.html">📘 Add Lesson</a></li>
+      <li><a href="add-question.html">📝 Add Quiz Question</a></li>
+      <li><a href="manage-content.html">📚 View Courses</a></li>
+      <li><a href="delete-users.html">🗑️ Delete Users</a></li>
+      <li><a href="leaderboard.html">🏆 Leaderboard</a></li>
+      <li><a href="account.html">⚙️ Account Settings</a></li>
+      <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+    </ul>
+  </div>
+  
+  <style>
+    .topbar {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #333;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 8px;
+      z-index: 1002;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  
+    .menu-toggle {
+      font-size: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.2);
+      padding: 5px 8px;
+      border-radius: 5px;
+    }
+  
+    .logo {
+      font-size: 15px;
+      font-weight: bold;
+    }
+  
+    .sidebar {
+      position: fixed;
+      left: -240px;
+      top: 0;
+      height: 100%;
+      width: 240px;
+      background: #fff;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      transition: left 0.3s ease;
+      padding-top: 60px;
+    }
+  
+    .sidebar.open {
+      left: 0;
+    }
+  
+    .sidebar-header {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+    }
+  
+    .sidebar ul {
+      list-style: none;
+      padding: 0 20px;
+    }
+  
+    .sidebar ul li {
+      margin: 18px 0;
+    }
+  
+    .sidebar ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      display: block;
+    }
+  
+    .sidebar ul li a:hover {
+      color: #4CAF50;
+    }
+  </style>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+  
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+  

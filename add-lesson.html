@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Lesson - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Add New Lesson</h1>
+
+    <form id="addLessonForm">
+      <select id="language" required>
+        <option value="">Select Language</option>
+        <option value="Python">Python</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="HTML">HTML</option>
+        <option value="CSS">CSS</option>
+        <!-- Add more languages if needed -->
+      </select>
+
+      <select id="course" required>
+        <option value="">Select Course</option>
+      </select>
+
+      <input type="text" id="title" placeholder="Lesson Title" required />
+      <input type="url" id="video_url" placeholder="Video URL (YouTube embed link)" required />
+      <textarea id="lesson_text" placeholder="Lesson Content" required></textarea>
+
+      <button type="submit">Add Lesson</button>
+      <p id="response" class="message"></p>
+    </form>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    // 🔐 Protect admin-only access
+    if (!username || role !== "admin") {
+      alert("You must be an admin to access this page.");
+      window.location.href = "login.html";
+    }
+
+    const languageSelect = document.getElementById("language");
+    const courseSelect = document.getElementById("course");
+
+    languageSelect.addEventListener("change", async () => {
+      const selectedLanguage = languageSelect.value;
+      courseSelect.innerHTML = '<option value="">Loading...</option>';
+
+      const res = await fetch("http://127.0.0.1:5000/courses");
+      const allCourses = await res.json();
+
+      // Filter courses by selected language
+      const filtered = allCourses.filter(course => course.language === selectedLanguage);
+
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+      filtered.forEach(course => {
+        const option = document.createElement("option");
+        option.value = course.id;
+        option.text = course.title;
+        courseSelect.appendChild(option);
+      });
+    });
+
+    // 🔼 Handle lesson form submit
+    document.getElementById("addLessonForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const course_id = courseSelect.value;
+      const title = document.getElementById("title").value;
+      const video_url = document.getElementById("video_url").value;
+      const lesson_text = document.getElementById("lesson_text").value;
+      const responseText = document.getElementById("response");
+
+      const res = await fetch("http://127.0.0.1:5000/lessons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, course_id, title, video_url, lesson_text })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        responseText.innerText = "✅ Lesson added successfully!";
+        document.getElementById("addLessonForm").reset();
+      } else {
+        responseText.innerText = data.error || "❌ Failed to add lesson.";
+      }
+    });
+  </script>
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("admin-sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+  
+        // Re-attach event listeners
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+  
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+  
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+  
+        const logoutBtn = document.querySelector("a[href='#'][onclick='logout()']");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = "login.html";
+          });
+        }
+      });
+  </script>
+</body>
+</html>

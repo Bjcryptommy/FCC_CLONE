@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Course - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Add New Course</h1>
+
+    <form id="addCourseForm">
+      <select id="language" required>
+        <option value="">Select Language</option>
+        <option value="Python">Python</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="HTML">HTML</option>
+        <option value="CSS">CSS</option>
+        <!-- Add more languages as needed -->
+      </select>
+
+      <input type="text" id="title" placeholder="Course Title" required />
+      <textarea id="description" placeholder="Course Description" required></textarea>
+
+      <button type="submit">Add Course</button>
+      <p id="response" class="message"></p>
+    </form>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    // Protect this page: only admins allowed
+    if (!username || role !== "admin") {
+      alert("You must be an admin to access this page.");
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("addCourseForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const language = document.getElementById("language").value;
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const responseText = document.getElementById("response");
+
+      const res = await fetch("http://127.0.0.1:5000/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, title, description, language })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        responseText.innerText = "✅ Course added successfully!";
+        document.getElementById("addCourseForm").reset();
+      } else {
+        responseText.innerText = data.error || "❌ Failed to add course.";
+      }
+    });
+  </script>
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("admin-sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+  
+        // Re-attach event listeners
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+  
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+  
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+  
+        const logoutBtn = document.querySelector("a[href='#'][onclick='logout()']");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = "login.html";
+          });
+        }
+      });
+  </script>
+</body>
+</html>

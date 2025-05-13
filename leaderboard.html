@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🏆 Leaderboard - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #0066cc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e6f2ff;
+      color: #333;
+    }
+
+    .medal {
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h1>🏆 Leaderboard</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Username</th>
+          <th>Total Points</th>
+          <th>Badge</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+
+    function getBadge(points) {
+      if (points >= 100) return "🥇 Gold";
+      if (points >= 60) return "🥈 Silver";
+      if (points >= 30) return "🥉 Bronze";
+      return "🔘 Beginner";
+    }
+
+    async function loadLeaderboard() {
+      const res = await fetch("http://127.0.0.1:5000/auth/all-users");
+      const users = await res.json();
+
+      const tbody = document.getElementById("leaderboardBody");
+      tbody.innerHTML = "";
+
+      users.sort((a, b) => (b.total_points || 0) - (a.total_points || 0));
+
+      users.forEach((user, index) => {
+        const points = user.total_points ?? 0;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="medal">${index + 1}</td>
+          <td>${user.username}</td>
+          <td>${points}</td>
+          <td>${getBadge(points)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    loadLeaderboard();
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

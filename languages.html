@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Select Programming Language</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 80px auto 50px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    .language-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .language-buttons button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .language-buttons button:hover {
+      background-color: #45a049;
+    }
+
+    .language-buttons button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar goes here -->
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h1>Select a Programming Language</h1>
+    <div class="language-buttons">
+      <button onclick="selectLanguage('Python')">🐍 Python</button>
+      <button onclick="selectLanguage('HTML')">📄 HTML</button>
+      <button onclick="selectLanguage('JavaScript')">✨ JavaScript</button>
+      <button onclick="selectLanguage('CSS')">🎨 CSS</button>
+    </div>
+  </div>
+
+  <script>
+    function selectLanguage(language) {
+      localStorage.setItem("selectedLanguage", language);
+      window.location.href = 'courses.html';
+    }
+
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    // Load sidebar
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+      function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

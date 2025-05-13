@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>FCC Clone - Register</h1>
+    <form id="registerForm">
+      <input type="text" id="username" placeholder="Username" required />
+
+      <!-- Password field with toggle -->
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <span id="togglePassword" class="eye-icon">👁️</span>
+      </div>
+      
+      <style>
+        .input-group {
+          position: relative;
+          display: flex;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+      
+        .input-group input {
+          flex: 1;
+          padding-right: 40px;
+          width: 100%;
+        }
+      
+        .eye-icon {
+          position: absolute;
+          right: 10px;
+          cursor: pointer;
+          user-select: none;
+        }
+      </style>
+      
+
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="student">Student</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <!-- Admin code field with toggle -->
+      <div id="adminCodeField" style="display: none; position: relative;">
+        <input type="password" id="adminCode" placeholder="Enter Admin Code" style="width: 100%; padding-right: 40px;" />
+        <span id="toggleAdminCode" style="position: absolute; right: 10px; top: 10px; cursor: pointer;">👁️</span>
+      </div>
+
+      <button type="submit">Register</button>
+      <p id="response" class="message"></p>
+      <p style="margin-top: 15px;">Already have an account?
+        <a href="login.html">Login</a>
+      </p>          
+    </form>
+  </div>
+
+  <script>
+    const roleSelect = document.getElementById("role");
+    const adminCodeField = document.getElementById("adminCodeField");
+
+    roleSelect.addEventListener("change", () => {
+      adminCodeField.style.display = roleSelect.value === "admin" ? "block" : "none";
+    });
+
+    // Toggle visibility for password
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const input = document.getElementById("password");
+      const toggle = document.getElementById("togglePassword");
+      const type = input.type === "password" ? "text" : "password";
+      input.type = type;
+      toggle.textContent = type === "password" ? "👁️" : "🙈";
+    });
+
+    // Toggle visibility for admin code
+    document.getElementById("toggleAdminCode").addEventListener("click", () => {
+      const input = document.getElementById("adminCode");
+      const toggle = document.getElementById("toggleAdminCode");
+      const type = input.type === "password" ? "text" : "password";
+      input.type = type;
+      toggle.textContent = type === "password" ? "👁️" : "🙈";
+    });
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
+      const adminCode = document.getElementById("adminCode").value;
+      const responseText = document.getElementById("response");
+
+      // Username check
+      if (username.length < 4) {
+        responseText.innerText = "❌ Username must be at least 4 characters.";
+        return;
+      }
+
+      // Password validation
+      const passwordErrors = [];
+      if (password.length < 6) passwordErrors.push("6+ characters");
+      if (!/[A-Z]/.test(password)) passwordErrors.push("1 uppercase");
+      if (!/[a-z]/.test(password)) passwordErrors.push("1 lowercase");
+      if (!/[0-9]/.test(password)) passwordErrors.push("1 number");
+      if (!/[!@#$%^&*]/.test(password)) passwordErrors.push("1 special (!@#)");
+
+      if (passwordErrors.length > 0) {
+        responseText.innerText = "❌ Password needs: " + passwordErrors.join(", ");
+        return;
+      }
+
+      if (role === "admin" && adminCode !== "admin123") {
+        responseText.innerText = "❌ Invalid admin code!";
+        return;
+      }
+
+      const response = await fetch("http://127.0.0.1:5000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, role }),
+      });
+
+      const data = await response.json();
+
+      if (data.message === "User registered successfully!") {
+        responseText.innerText = "✅ Registration successful! Redirecting...";
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", role);
+
+        setTimeout(() => {
+          window.location.href = role === "admin" ? "admin-dashboard.html" : "student-dashboard.html";
+        }, 1000); // Optional 1-second delay
+      } else {
+        responseText.innerText = data.error || "❌ Something went wrong.";
+      }
+    });
+
+    // Redirect if already logged in
+    const currentRole = localStorage.getItem("role");
+    if (currentRole === "admin") {
+      window.location.href = "admin-dashboard.html";
+    } else if (currentRole === "student") {
+      window.location.href = "student-dashboard.html";
+    }
+  </script>
+</body>
+</html>

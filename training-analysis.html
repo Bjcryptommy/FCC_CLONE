@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>📊 My Progress - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 80px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .summary {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .summary p {
+      margin: 6px 0;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .status-true {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-false {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- 🔁 Sidebar Placeholder -->
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h1>📊 My Training Progress</h1>
+
+    <div class="summary">
+      <p><strong>👤 Student:</strong> <span id="usernameDisplay"></span></p>
+      <p><strong>⭐ Total Points:</strong> <span id="totalPoints">Loading...</span></p>
+      <p><strong>🏆 Badge Level:</strong> <span id="badgeLevel">Calculating...</span></p>
+    </div>
+
+    <h3>📚 Lesson Attempts</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Lesson Title</th>
+          <th>Attempts</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="attemptsList"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username");
+    document.getElementById("usernameDisplay").innerText = username;
+
+    async function loadPoints() {
+      const res = await fetch(`http://127.0.0.1:5000/auth/points/${username}`);
+      const data = await res.json();
+      const points = data.total_points || 0;
+      document.getElementById("totalPoints").innerText = points;
+
+      let badge = "🔘 Beginner";
+      if (points >= 100) badge = "🥇 Gold";
+      else if (points >= 60) badge = "🥈 Silver";
+      else if (points >= 30) badge = "🥉 Bronze";
+
+      document.getElementById("badgeLevel").innerText = badge;
+    }
+
+    async function loadAttempts() {
+      const res = await fetch(`http://127.0.0.1:5000/user-progress/${username}`);
+      const data = await res.json();
+      const table = document.getElementById("attemptsList");
+
+      if (data.length === 0) {
+        table.innerHTML = `<tr><td colspan="3">No attempts yet.</td></tr>`;
+        return;
+      }
+
+      data.forEach(item => {
+        const row = document.createElement("tr");
+
+        const lessonCol = document.createElement("td");
+        lessonCol.innerText = item.lesson_title;
+
+        const attCol = document.createElement("td");
+        attCol.innerText = item.attempts;
+
+        const statusCol = document.createElement("td");
+        statusCol.innerText = item.is_correct ? "✅ Correct" : "❌ Incorrect";
+        statusCol.className = item.is_correct ? "status-true" : "status-false";
+
+        row.appendChild(lessonCol);
+        row.appendChild(attCol);
+        row.appendChild(statusCol);
+        table.appendChild(row);
+      });
+    }
+
+    loadPoints();
+    loadAttempts();
+
+    // 🔐 Redirect if not logged in
+    const role = localStorage.getItem("role");
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    // ✅ Load sidebar HTML
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+      function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+
+  
+</body>
+</html>

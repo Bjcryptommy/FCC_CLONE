@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>⚙️ Account Settings - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 80px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .message {
+      margin-top: 8px;
+      color: #d8000c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Placeholder -->
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h2>⚙️ Account Settings</h2>
+
+    <!-- Profile Update -->
+    <div class="section">
+      <h3>Update Profile</h3>
+      <input type="text" id="fullName" placeholder="Full Name" />
+      <input type="text" id="newUsername" placeholder="New Username" />
+      <button onclick="updateProfile()">Save Changes</button>
+      <div id="profileMessage" class="message"></div>
+    </div>
+
+    <!-- Password Change -->
+    <div class="section">
+      <h3>Change Password</h3>
+      <input type="password" id="oldPassword" placeholder="Old Password" />
+      <input type="password" id="newPassword" placeholder="New Password" />
+      <input type="password" id="confirmPassword" placeholder="Confirm New Password" />
+      <button onclick="changePassword()">Change Password</button>
+      <div id="passwordMessage" class="message"></div>
+    </div>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    async function loadProfile() {
+      const res = await fetch(`http://127.0.0.1:5000/auth/user/${username}`);
+      const data = await res.json();
+      if (data.full_name) {
+        document.getElementById("fullName").value = data.full_name;
+      }
+      document.getElementById("newUsername").value = data.username;
+    }
+
+    async function updateProfile() {
+      const newUsername = document.getElementById("newUsername").value.trim();
+      const fullName = document.getElementById("fullName").value.trim();
+      const msg = document.getElementById("profileMessage");
+
+      const res = await fetch("http://127.0.0.1:5000/auth/update-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_username: username,
+          new_username: newUsername,
+          full_name: fullName
+        })
+      });
+
+      const data = await res.json();
+      if (data.message) {
+        msg.style.color = "green";
+        msg.innerText = "✅ " + data.message;
+        localStorage.setItem("username", newUsername); // update stored username
+      } else {
+        msg.style.color = "red";
+        msg.innerText = "❌ " + data.error;
+      }
+    }
+
+    async function changePassword() {
+      const oldPass = document.getElementById("oldPassword").value;
+      const newPass = document.getElementById("newPassword").value;
+      const confirmPass = document.getElementById("confirmPassword").value;
+      const msg = document.getElementById("passwordMessage");
+
+      if (newPass !== confirmPass) {
+        msg.innerText = "❌ Passwords do not match.";
+        msg.style.color = "red";
+        return;
+      }
+
+      const res = await fetch("http://127.0.0.1:5000/auth/change-password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          old_password: oldPass,
+          new_password: newPass
+        })
+      });
+
+      const data = await res.json();
+      if (data.message) {
+        msg.innerText = "✅ " + data.message;
+        msg.style.color = "green";
+        document.getElementById("oldPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+      } else {
+        msg.innerText = "❌ " + data.error;
+        msg.style.color = "red";
+      }
+    }
+
+    // Load sidebar
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+
+    loadProfile();
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

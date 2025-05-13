@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson Detail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 id="lessonTitle">Lesson</h1>
+    <div id="lessonContent"></div>
+    <div id="quizSection"></div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('lesson_id');
+
+    async function loadLesson() {
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/lessons/${lessonId}`);
+        const lesson = await res.json();
+
+        document.getElementById("lessonTitle").innerText = lesson.title;
+        document.getElementById("lessonContent").innerHTML = `
+          <p>${lesson.lesson_text}</p>
+          <iframe width="560" height="315" src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe>
+        `;
+
+        loadQuiz(lessonId);
+      } catch (error) {
+        console.error("Error fetching lesson:", error);
+      }
+    }
+
+    async function loadQuiz(lessonId) {
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/lessons/${lessonId}/questions`);
+        const questions = await res.json();
+
+        const quizSection = document.getElementById("quizSection");
+
+        if (questions.length === 0) {
+          quizSection.innerHTML = "<p>No quiz available for this lesson.</p>";
+          return;
+        }
+
+        questions.forEach(question => {
+          const questionDiv = document.createElement("div");
+          questionDiv.className = "question";
+
+          const questionText = document.createElement("p");
+          questionText.innerText = question.question_text;
+          questionDiv.appendChild(questionText);
+
+          question.answers.forEach(answer => {
+            const answerBtn = document.createElement("button");
+            answerBtn.innerText = answer.answer_text;
+            answerBtn.onclick = () => submitAnswer(question.id, answer.id);
+            questionDiv.appendChild(answerBtn);
+          });
+
+          quizSection.appendChild(questionDiv);
+        });
+      } catch (error) {
+        console.error("Error fetching quiz:", error);
+      }
+    }
+
+    async function submitAnswer(questionId, answerId) {
+      try {
+        const res = await fetch("http://127.0.0.1:5000/submit-answer", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: localStorage.getItem("username"),
+            question_id: questionId,
+            answer_id: answerId
+          })
+        });
+
+        const result = await res.json();
+        alert(result.message);
+      } catch (error) {
+        console.error("Error submitting answer:", error);
+      }
+    }
+
+    loadLesson();
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lessons - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Sidebar Placeholder -->
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h1 id="courseTitle">Lessons</h1>
+    <div id="lessonList" class="dashboard-buttons"></div>
+  </div>
+
+  <script>
+    // ✅ Authentication check
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    // ✅ Get course ID and title
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    const courseId = getQueryParam("course_id");
+    const courseTitle = localStorage.getItem("selectedCourseTitle") || "Selected Course";
+    document.getElementById("courseTitle").innerText = courseTitle + " - Lessons";
+
+    if (!courseId) {
+      alert("No course selected. Please go back and select a course.");
+    } else {
+      loadLessons();
+    }
+
+    // ✅ Load lessons
+    async function loadLessons() {
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/courses/${courseId}/lessons`);
+        const lessons = await response.json();
+        const lessonList = document.getElementById("lessonList");
+
+        if (!lessons || lessons.length === 0) {
+          lessonList.innerHTML = "<p>No lessons available yet.</p>";
+          return;
+        }
+
+        lessons.forEach(lesson => {
+          const btn = document.createElement("a");
+          btn.href = `lesson.html?lesson_id=${lesson.id}`;
+          btn.className = "btn";
+          btn.innerText = lesson.title;
+          lessonList.appendChild(btn);
+        });
+      } catch (err) {
+        console.error("Failed to load lessons:", err);
+        document.getElementById("lessonList").innerHTML = "<p>Failed to load lessons.</p>";
+      }
+    }
+
+    // ✅ Load sidebar and enable toggle
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+      function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

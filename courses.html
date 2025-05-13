@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Courses - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Sidebar placeholder -->
+  <div id="sidebar-placeholder"></div>
+
+  <div class="container">
+    <h1 id="languageHeading">Courses</h1>
+    <div id="courseList" class="dashboard-buttons"></div>
+  </div>
+
+  <script>
+    const selectedLanguage = localStorage.getItem("selectedLanguage");
+
+    if (!selectedLanguage) {
+      alert("No language selected. Redirecting...");
+      window.location.href = "languages.html";
+    }
+
+    document.getElementById("languageHeading").innerText = `Courses for ${selectedLanguage}`;
+
+    async function loadCourses() {
+      const res = await fetch("http://127.0.0.1:5000/courses");
+      const courses = await res.json();
+
+      const filtered = courses.filter(c => c.language === selectedLanguage);
+      const courseList = document.getElementById("courseList");
+
+      if (filtered.length === 0) {
+        courseList.innerHTML = "<p>No courses available for this language yet.</p>";
+        return;
+      }
+
+      filtered.forEach(course => {
+        const btn = document.createElement("a");
+        btn.href = `lessons.html?course_id=${course.id}`;
+        btn.className = "btn";
+        btn.textContent = course.title;
+
+        btn.onclick = () => {
+          localStorage.setItem("selectedCourseTitle", course.title);
+        };
+
+        courseList.appendChild(btn);
+      });
+    }
+
+    loadCourses();
+
+    // 🔐 Redirect if not logged in
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    // ⬅️ Load and activate sidebar
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+    function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+  </script>
+</body>
+</html>

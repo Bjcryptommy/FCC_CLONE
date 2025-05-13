@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Dashboard - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Sidebar will be injected here -->
+  <div id="sidebar-placeholder"></div>
+
+  <!-- Main page content -->
+  <div class="container">
+
+    <h1 id="welcomeMessage">Welcome!</h1>
+
+    <div class="dashboard-buttons">
+      <a href="languages.html" class="btn">📘 Start Learning</a>
+      <a href="training-analysis.html" class="btn">📊 My Progress</a>
+    </div>
+  </div>
+
+  <script>
+    // 🔐 Redirect if not logged in or not a student
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    if (!username || role !== "student") {
+      window.location.href = "login.html";
+    }
+
+    // 🧾 Set welcome message
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${username}! 🎓`;
+
+    // 🔓 Logout function
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    // ✅ Load sidebar and activate menu toggle
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+
+        // Attach sidebar toggle handlers AFTER loading
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+      });
+  </script>
+
+</body>
+</html>

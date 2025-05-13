@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: fcc-clone-backend
+    runtime: python
+    buildCommand: ""
+    startCommand: python app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - FCC Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome, Admin 🎓</h1>
+    
+
+    <div class="dashboard-buttons">
+      <a href="add-course.html" class="btn">➕ Add Course</a>
+      <a href="add-lesson.html" class="btn">➕ Add Lesson</a>
+      <a href="add-question.html" class="btn">📝 Add Quiz Question</a>
+      <a href="courses.html" class="btn">📚 View All Courses</a>
+    </div>
+  </div>
+  <script>
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("admin-sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-placeholder").innerHTML = html;
+  
+        // Re-attach event listeners
+        const menuBtn = document.querySelector(".menu-toggle");
+        const closeBtn = document.getElementById("closeSidebar");
+  
+        if (menuBtn && closeBtn) {
+          menuBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+  
+          closeBtn.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+          });
+        }
+  
+        const logoutBtn = document.querySelector("a[href='#'][onclick='logout()']");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = "login.html";
+          });
+        }
+      });
+  </script>
+  
+  
+  
+</body>
+</html>
